@@ -1,72 +1,72 @@
-import scipy.misc
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from PIL import Image, ImageOps
-import cv2
-import os
-import PIL
+from keras.applications.resnet50 import ResNet50
+from keras.applications import VGG19
+from keras.preprocessing import image
+from keras.applications.resnet50 import preprocess_input, decode_predictions
+from sklearn.utils import shuffle
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-import numpy as np
+from keras import models
+from keras import layers
+import matplotlib as plt
+import cv2
+import os
+boeing_dir = 'Boeing-Image-Dir'
+airbus_dir = 'Airbus-Image-Dir'
 
-boeing_dir = '/users/programming/Desktop/BoeingAirbus/Boeing'
-airbus_dir = '/users/programming/Desktop/BoeingAirbus/Airbus'
+conv_base = ResNet50(weights='imagenet', input_shape=(224, 224, 3))
 
-'''Airbus/Boeing Classifier made by PaulMcPython18. Please feel free to use this code as inspiration, however I ask that
-   you give credit to PaulMcPython18.'''
+
+
+
+
+model = models.Sequential()
+model.add(conv_base)
+
+model.add(layers.Dropout(0.15))
+model.add(layers.GaussianNoise(0.15))
+model.add(layers.Dense(256, activation='relu'))
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(16, activation='relu'))
+model.add(layers.Dense(2, activation='softmax'))
+model.save('resnet-BA-classifier.h5')
 
 boeing_data = []
 boeing_label = []
 airbus_data = []
 airbus_label = []
-
-
+'''iterate through each file, resize, append to variable accordingly'''
 for filename in os.listdir(boeing_dir):
     if filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
-        path = os.path.join(boeing_dir, filename)
+        path_b = os.path.join(boeing_dir, filename)
         im = cv2.imread(path_b)
-        im = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
-        im = cv2.imread(path_b, cv2.IMREAD_GRAYSCALE)
-        im = cv2.resize(im, (750, 750))
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        im = cv2.resize(im, (224, 224))
         boeing_data.append(im)
         boeing_label.append(0)
 
-
 for filename in os.listdir(airbus_dir):
     if filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
-        path = os.path.join(airbus_dir, filename)
+        path_b = os.path.join(airbus_dir, filename)
         im = cv2.imread(path_b)
-        im = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
-        im = cv2.imread(path_b, cv2.IMREAD_GRAYSCALE)
-        im = cv2.resize(im, (750, 750))
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        im = cv2.resize(im, (224, 224))
         airbus_data.append(im)
         airbus_label.append(1)
 
 
 
-training_data = boeing_data + airbus_data
+
+training_data = boeing_data + airbus_data #Concadenate Boeing and Airbus data
 training_label = boeing_label + airbus_label
 
-training_data = np.array(training_data)#.reshape(-1, 750, 750, 1)
-training_label = np.asarray(training_label)
+training_data = np.array(training_data)
+training_label = np.asarray(training_label) # Turn Data into numpy arrays
+training_data, training_label = shuffle(training_data, training_label) # Shuffle
 
-
-
-model = keras.Sequential([
-    tf.keras.layers.Conv1D(32, 3, activation='selu', input_shape=(750, 750)),
-    tf.keras.layers.MaxPooling1D(2, 2),
-    tf.keras.layers.Conv1D(32, 3, activation='selu'),
-    tf.keras.layers.MaxPooling1D(2, 2),
-    tf.keras.layers.Conv1D(32, 3, activation='selu'),
-    tf.keras.layers.MaxPooling1D(2, 2),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dropout(0.15),
-    tf.keras.layers.Dense(784, activation='selu'),
-    tf.keras.layers.Dense(392, activation='selu'),
-    tf.keras.layers.Dense(2, activation='softmax')
-])
-
-model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-model.fit(training_data, training_label, epochs=20, batch_size=20, validation_split=0.1, verbose=1)
-
+print(training_data.shape)
+print(training_label)
+model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+print(model.summary())
+model.fit(training_data, training_label, epochs=10, batch_size=20, validation_split=0.1, verbose=1)
+print('finished training')
