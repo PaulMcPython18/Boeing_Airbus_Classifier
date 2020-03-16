@@ -1,3 +1,13 @@
+'''
+Airbus/Boeing Machine Learning Model powered through ResNet50
+
+By: Paul McBurney
+
+Last Edited: 01/12/2019
+
+Do Not Take Without Permission
+'''
+
 from keras.applications.resnet50 import ResNet50
 from keras.applications import VGG19
 from keras.preprocessing import image
@@ -66,7 +76,7 @@ training_data, training_label = shuffle(training_data, training_label) # Shuffle
 
 print(training_data.shape)
 print(training_label)
-model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd', metrics=['accuracy']) # Compile
+model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd', metrics=['accuracy']) # Compile (Use sparse_categorical_crossentropy when you have two classes, otherwise use categorical_crossentropy)
 print(model.summary())
 model.fit(training_data, training_label, epochs=10, batch_size=20, validation_split=0.1, verbose=1) # Train
 print('finished training')
