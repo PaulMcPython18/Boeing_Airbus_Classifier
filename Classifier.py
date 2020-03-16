@@ -11,7 +11,7 @@ from keras import layers
 import matplotlib as plt
 import cv2
 import os
-boeing_dir = 'Boeing-Image-Dir'
+boeing_dir = 'Boeing-Image-Dir' # Insert URL of Files
 airbus_dir = 'Airbus-Image-Dir'
 
 conv_base = ResNet50(weights='imagenet', input_shape=(224, 224, 3))
@@ -40,8 +40,8 @@ for filename in os.listdir(boeing_dir):
     if filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".jpeg"):
         path_b = os.path.join(boeing_dir, filename)
         im = cv2.imread(path_b)
-        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-        im = cv2.resize(im, (224, 224))
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB) # Convert with cv2 module to RGB format
+        im = cv2.resize(im, (224, 224)) # Resizing
         boeing_data.append(im)
         boeing_label.append(0)
 
@@ -66,7 +66,7 @@ training_data, training_label = shuffle(training_data, training_label) # Shuffle
 
 print(training_data.shape)
 print(training_label)
-model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd', metrics=['accuracy']) # Compile
 print(model.summary())
-model.fit(training_data, training_label, epochs=10, batch_size=20, validation_split=0.1, verbose=1)
+model.fit(training_data, training_label, epochs=10, batch_size=20, validation_split=0.1, verbose=1) # Train
 print('finished training')
